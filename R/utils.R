@@ -125,12 +125,7 @@ execute_sql_query <- function(query_string, warehouse_id, ...) {
   while (result$status$state != "SUCCEEDED") {
     test_time <- test_time + as.numeric(Sys.time() - time_)
     time_ <- Sys.time()
-    try(
-      {
-        result <- brickster::db_sql_exec_status(result$statement_id)
-      },
-      silent = TRUE
-    )
+    result <- brickster::db_sql_exec_status(result$statement_id)
 
     if (result$status$state == "FAILED") {
       cli::cli_abort(

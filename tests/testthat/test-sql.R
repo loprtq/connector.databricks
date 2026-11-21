@@ -1,3 +1,24 @@
+test_that("SQL status polling propagates API errors", {
+  mockery::stub(
+    execute_sql_query,
+    "brickster::db_sql_exec_query",
+    mockery::mock(list(
+      status = list(state = "RUNNING"),
+      statement_id = "statement-id"
+    ))
+  )
+  mockery::stub(
+    execute_sql_query,
+    "brickster::db_sql_exec_status",
+    function(...) stop("Status API failed")
+  )
+
+  expect_error(
+    execute_sql_query("SELECT 1", "warehouse-id"),
+    regexp = "Status API failed"
+  )
+})
+
 skip_offline_test()
 
 test_that("Table generics work for connector_databricks_sql", {

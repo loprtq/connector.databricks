@@ -39,17 +39,7 @@ write_table_volume <- function(
   checkmate::assert_list(tags, null.ok = TRUE)
 
   volume_name <- tmp_volume_name()
-  temporary_volume <- tryCatch(
-    {
-      tmp_volume(connector_object, volume_name)
-    },
-    error = function(e) {
-      zephyr::msg_danger(paste0(
-        "Temporary volume creation failed. Error message:",
-        e
-      ))
-    }
-  )
+  temporary_volume <- tmp_volume(connector_object, volume_name)
 
   withr::defer({
     brickster::db_uc_volumes_delete(

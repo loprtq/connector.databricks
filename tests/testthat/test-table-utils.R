@@ -32,6 +32,23 @@ test_that("write_table_volume fails when needed", {
     expect_error(
       regexp = "Assertion on 'tags' failed: Must be of type 'list'"
     )
+
+  temporary_volume_mock <- function(...) {
+    stop("Temporary volume creation failed")
+  }
+  mockery::stub(
+    write_table_volume,
+    "tmp_volume",
+    temporary_volume_mock
+  )
+  expect_error(
+    write_table_volume(
+      connector_object = dummy_table_connector,
+      x = iris,
+      name = "iris"
+    ),
+    regexp = "Temporary volume creation failed"
+  )
 })
 
 test_that("list_content_tags fails when needed", {

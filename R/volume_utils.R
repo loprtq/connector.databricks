@@ -25,6 +25,16 @@ check_databricks_volume_exists <- function(
       return(NULL)
     },
     error = function(e) {
+      status_code <- tryCatch(
+        e$resp$status_code,
+        error = function(...) NULL
+      )
+      if (!identical(status_code, 404)) {
+        cli::cli_abort(
+          "Failed to check whether volume {.val {catalog}/{schema}/{volume}} exists.",
+          parent = e
+        )
+      }
       if (force) {
         invisible(brickster::db_uc_volumes_create(
           volume = volume,
@@ -33,22 +43,20 @@ check_databricks_volume_exists <- function(
         ))
         return(NULL)
       }
-      if (e$resp$status_code == 404) {
-        menu <- menu(
-          c("Create volume", "Exit"),
-          title = "Volume does not exist. What would you like to do?"
-        )
-        if (menu == 1) {
-          zephyr::msg_info("Creating volume {catalog}/{schema}/{volume}...")
-          invisible(brickster::db_uc_volumes_create(
-            volume = volume,
-            catalog = catalog,
-            schema = schema
-          ))
-          zephyr::msg_info("Volume created!")
-        } else {
-          cli::cli_abort("Exiting...")
-        }
+      menu <- menu(
+        c("Create volume", "Exit"),
+        title = "Volume does not exist. What would you like to do?"
+      )
+      if (menu == 1) {
+        zephyr::msg_info("Creating volume {catalog}/{schema}/{volume}...")
+        invisible(brickster::db_uc_volumes_create(
+          volume = volume,
+          catalog = catalog,
+          schema = schema
+        ))
+        zephyr::msg_info("Volume created!")
+      } else {
+        cli::cli_abort("Exiting...")
       }
     }
   )

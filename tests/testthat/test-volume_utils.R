@@ -16,6 +16,25 @@ test_that("directory upload and removal fails when needed", {
   )
 })
 
+test_that("volume existence checks preserve non-404 errors", {
+  volume_get_mock <- function(...) {
+    stop("Databricks connection failed")
+  }
+  mockery::stub(
+    check_databricks_volume_exists,
+    "brickster::db_uc_volumes_get",
+    volume_get_mock
+  )
+  expect_error(
+    check_databricks_volume_exists(
+      catalog = "catalog",
+      schema = "schema",
+      volume = "volume"
+    ),
+    regexp = "Failed to check whether volume"
+  )
+})
+
 skip_offline_test()
 
 test_that("directory upload and removal works", {
